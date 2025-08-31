@@ -1,14 +1,23 @@
-"use client"
+"use client";
 
-import { useLiveData } from "@/hooks/use-live-data"
-import { calculateOutstanding } from "@/utils/calculations"
-import { formatCurrency } from "@/utils/currency"
-import { formatDate } from "@/utils/date"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Users, DollarSign, AlertCircle, TrendingUp, Calendar, Percent, Target, ChevronRight } from "lucide-react"
-import dynamic from "next/dynamic"
-import Link from "next/link"
+import { useLiveData } from "@/hooks/use-live-data";
+import { calculateOutstanding } from "@/utils/calculations";
+import { formatCurrency } from "@/utils/currency";
+import { formatDate } from "@/utils/date";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  DollarSign,
+  AlertCircle,
+  TrendingUp,
+  Calendar,
+  Percent,
+  Target,
+  SquareArrowOutUpRight,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const CollectionTrendChart = dynamic(
   () =>
@@ -27,8 +36,8 @@ const CollectionTrendChart = dynamic(
         </CardContent>
       </Card>
     ),
-  },
-)
+  }
+);
 
 const FeeCategoryChart = dynamic(
   () =>
@@ -47,8 +56,8 @@ const FeeCategoryChart = dynamic(
         </CardContent>
       </Card>
     ),
-  },
-)
+  }
+);
 
 const OutstandingByGradeChart = dynamic(
   () =>
@@ -67,98 +76,146 @@ const OutstandingByGradeChart = dynamic(
         </CardContent>
       </Card>
     ),
-  },
-)
+  }
+);
 
 export default function Dashboard() {
-  const { students, payments, feeTemplates, settings } = useLiveData()
+  const { students, payments, feeTemplates, settings } = useLiveData();
 
   // Calculate KPIs
-  const totalStudents = students.length
-  const activeStudents = students.filter((s) => s.status === "active").length
+  const totalStudents = students.length;
+  const activeStudents = students.filter((s) => s.status === "active").length;
 
-  const totalCollected = payments.reduce((sum, payment) => sum + payment.amount, 0)
+  const totalCollected = payments.reduce(
+    (sum, payment) => sum + payment.amount,
+    0
+  );
 
   const totalOutstanding = students.reduce((sum, student) => {
-    return sum + calculateOutstanding(student, payments)
-  }, 0)
+    return sum + calculateOutstanding(student, payments);
+  }, 0);
 
   const overdueCount = students.filter((student) => {
     return student.assignedFees.some(
-      (fee) => fee.dueDate && new Date(fee.dueDate) < new Date() && fee.status !== "paid",
-    )
-  }).length
+      (fee) =>
+        fee.dueDate &&
+        new Date(fee.dueDate) < new Date() &&
+        fee.status !== "paid"
+    );
+  }).length;
 
   const totalFees = students.reduce((sum, student) => {
-    return sum + student.assignedFees.reduce((feeSum, fee) => feeSum + fee.amount, 0)
-  }, 0)
+    return (
+      sum + student.assignedFees.reduce((feeSum, fee) => feeSum + fee.amount, 0)
+    );
+  }, 0);
 
-  const collectionRate = totalFees > 0 ? (totalCollected / totalFees) * 100 : 0
+  const collectionRate = totalFees > 0 ? (totalCollected / totalFees) * 100 : 0;
 
   const thisMonthPayments = payments.filter((p) => {
-    const paymentDate = new Date(p.date)
-    const now = new Date()
-    return paymentDate.getMonth() === now.getMonth() && paymentDate.getFullYear() === now.getFullYear()
-  })
+    const paymentDate = new Date(p.date);
+    const now = new Date();
+    return (
+      paymentDate.getMonth() === now.getMonth() &&
+      paymentDate.getFullYear() === now.getFullYear()
+    );
+  });
 
-  const thisMonthCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0)
+  const thisMonthCollected = thisMonthPayments.reduce(
+    (sum, p) => sum + p.amount,
+    0
+  );
 
   const lastMonthPayments = payments.filter((p) => {
-    const paymentDate = new Date(p.date)
-    const lastMonth = new Date()
-    lastMonth.setMonth(lastMonth.getMonth() - 1)
-    return paymentDate.getMonth() === lastMonth.getMonth() && paymentDate.getFullYear() === lastMonth.getFullYear()
-  })
+    const paymentDate = new Date(p.date);
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    return (
+      paymentDate.getMonth() === lastMonth.getMonth() &&
+      paymentDate.getFullYear() === lastMonth.getFullYear()
+    );
+  });
 
-  const lastMonthCollected = lastMonthPayments.reduce((sum, p) => sum + p.amount, 0)
+  const lastMonthCollected = lastMonthPayments.reduce(
+    (sum, p) => sum + p.amount,
+    0
+  );
   const monthlyGrowth =
-    lastMonthCollected > 0 ? ((thisMonthCollected - lastMonthCollected) / lastMonthCollected) * 100 : 0
+    lastMonthCollected > 0
+      ? ((thisMonthCollected - lastMonthCollected) / lastMonthCollected) * 100
+      : 0;
 
-  const averageFeePerStudent = totalStudents > 0 ? totalFees / totalStudents : 0
-  const averagePaymentAmount = payments.length > 0 ? totalCollected / payments.length : 0
+  const averageFeePerStudent =
+    totalStudents > 0 ? totalFees / totalStudents : 0;
+  const averagePaymentAmount =
+    payments.length > 0 ? totalCollected / payments.length : 0;
 
-  const currency = settings?.currency || "USD"
+  const currency = settings?.currency || "USD";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your tuition management system</p>
+        <p className="text-muted-foreground">
+          Overview of your tuition management system
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <Link href="/students" prefetch={false} className="md:hidden lg:flex">
-                <ChevronRight className="h-4 w-4 text-muted-foreground" aria-label="Go to Students" />
+              <Link
+                href="/students"
+                prefetch={false}
+                className="md:hidden lg:flex"
+              >
+                <SquareArrowOutUpRight
+                  className="h-4 w-4 text-muted-foreground"
+                  aria-label="Go to Students"
+                />
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStudents}</div>
             <p className="text-xs text-muted-foreground">
-              {activeStudents} active • {totalStudents - activeStudents} inactive
+              {activeStudents} active • {totalStudents - activeStudents}{" "}
+              inactive
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Collected</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Collected
+            </CardTitle>
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <Link href="/payments" prefetch={false} className="md:hidden lg:flex">
-                <ChevronRight className="h-4 w-4 text-muted-foreground" aria-label="Go to Payments" />
+              <Link
+                href="/payments"
+                prefetch={false}
+                className="md:hidden lg:flex"
+              >
+                <SquareArrowOutUpRight
+                  className="h-4 w-4 text-muted-foreground"
+                  aria-label="Go to Payments"
+                />
               </Link>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalCollected, currency)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalCollected, currency)}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {payments.length} payments • Avg: {formatCurrency(averagePaymentAmount, currency)}
+              {payments.length} payments • Avg:{" "}
+              {formatCurrency(averagePaymentAmount, currency)}
             </p>
           </CardContent>
         </Card>
@@ -168,14 +225,25 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <Link href="/invoices" prefetch={false} className="md:hidden lg:flex">
-                <ChevronRight className="h-4 w-4 text-muted-foreground" aria-label="Go to Invoices" />
+              <Link
+                href="/invoices"
+                prefetch={false}
+                className="md:hidden lg:flex"
+              >
+                <SquareArrowOutUpRight
+                  className="h-4 w-4 text-muted-foreground"
+                  aria-label="Go to Invoices"
+                />
               </Link>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalOutstanding, currency)}</div>
-            <p className="text-xs text-muted-foreground">{Math.round(collectionRate)}% collected</p>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalOutstanding, currency)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round(collectionRate)}% collected
+            </p>
           </CardContent>
         </Card>
 
@@ -184,15 +252,25 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Overdue</CardTitle>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
-              <Link href="/invoices" prefetch={false} className="md:hidden lg:flex">
-                <ChevronRight className="h-4 w-4 text-muted-foreground" aria-label="Go to Invoices" />
+              <Link
+                href="/invoices"
+                prefetch={false}
+                className="md:hidden lg:flex"
+              >
+                <SquareArrowOutUpRight
+                  className="h-4 w-4 text-muted-foreground"
+                  aria-label="Go to Invoices"
+                />
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overdueCount}</div>
             <p className="text-xs text-muted-foreground">
-              {totalStudents > 0 ? Math.round((overdueCount / totalStudents) * 100) : 0}% of students
+              {totalStudents > 0
+                ? Math.round((overdueCount / totalStudents) * 100)
+                : 0}
+              % of students
             </p>
           </CardContent>
         </Card>
@@ -205,7 +283,9 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(thisMonthCollected, currency)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(thisMonthCollected, currency)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {monthlyGrowth >= 0 ? "+" : ""}
               {monthlyGrowth.toFixed(1)}% from last month
@@ -215,25 +295,36 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Collection Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Collection Rate
+            </CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{collectionRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">
+              {collectionRate.toFixed(1)}%
+            </div>
             <p className="text-xs text-muted-foreground">
-              {formatCurrency(totalCollected, currency)} of {formatCurrency(totalFees, currency)}
+              {formatCurrency(totalCollected, currency)} of{" "}
+              {formatCurrency(totalFees, currency)}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Fee/Student</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Avg Fee/Student
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(averageFeePerStudent, currency)}</div>
-            <p className="text-xs text-muted-foreground">{feeTemplates.length} fee templates</p>
+            <div className="text-2xl font-bold">
+              {formatCurrency(averageFeePerStudent, currency)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {feeTemplates.length} fee templates
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -243,7 +334,11 @@ export default function Dashboard() {
         <FeeCategoryChart students={students} settings={settings!} />
       </div>
 
-      <OutstandingByGradeChart students={students} payments={payments} settings={settings!} />
+      <OutstandingByGradeChart
+        students={students}
+        payments={payments}
+        settings={settings!}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -256,40 +351,60 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3">
                 {payments
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                  )
                   .slice(0, 5)
                   .map((payment) => {
-                    const student = students.find((s) => s.id === payment.studentId)
-                    const daysAgo = Math.floor((Date.now() - new Date(payment.date).getTime()) / (1000 * 60 * 60 * 24))
+                    const student = students.find(
+                      (s) => s.id === payment.studentId
+                    );
+                    const daysAgo = Math.floor(
+                      (Date.now() - new Date(payment.date).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
 
                     return (
-                      <div key={payment.id} className="flex justify-between items-start p-3 border rounded-lg">
+                      <div
+                        key={payment.id}
+                        className="flex justify-between items-start p-3 border rounded-lg"
+                      >
                         <div className="flex-1">
                           <p className="font-medium">
-                            {student ? `${student.firstName} ${student.lastName}` : "Unknown Student"}
+                            {student
+                              ? `${student.firstName} ${student.lastName}`
+                              : "Unknown Student"}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline" className="text-xs">
                               {payment.method}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo} days ago`}
+                              {daysAgo === 0
+                                ? "Today"
+                                : daysAgo === 1
+                                ? "Yesterday"
+                                : `${daysAgo} days ago`}
                             </span>
                           </div>
                           {payment.appliedTo.length > 0 && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Applied to {payment.appliedTo.length} fee{payment.appliedTo.length > 1 ? "s" : ""}
+                              Applied to {payment.appliedTo.length} fee
+                              {payment.appliedTo.length > 1 ? "s" : ""}
                             </p>
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600">{formatCurrency(payment.amount, currency)}</p>
+                          <p className="font-bold text-green-600">
+                            {formatCurrency(payment.amount, currency)}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {formatDate(payment.date, settings?.dateFormat)}
                           </p>
                         </div>
                       </div>
-                    )
+                    );
                   })}
               </div>
             )}
@@ -305,24 +420,27 @@ export default function Dashboard() {
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <div>
                   <p className="font-medium">Payment Methods</p>
-                  <p className="text-sm text-muted-foreground">Most popular method</p>
+                  <p className="text-sm text-muted-foreground">
+                    Most popular method
+                  </p>
                 </div>
                 <div className="text-right">
                   {(() => {
-                    const methodCounts = payments.reduce(
-                      (acc, p) => {
-                        acc[p.method] = (acc[p.method] || 0) + 1
-                        return acc
-                      },
-                      {} as Record<string, number>,
-                    )
-                    const topMethod = Object.entries(methodCounts).sort(([, a], [, b]) => b - a)[0]
+                    const methodCounts = payments.reduce((acc, p) => {
+                      acc[p.method] = (acc[p.method] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>);
+                    const topMethod = Object.entries(methodCounts).sort(
+                      ([, a], [, b]) => b - a
+                    )[0];
                     return (
                       <div>
                         <Badge>{topMethod?.[0] || "None"}</Badge>
-                        <p className="text-xs text-muted-foreground mt-1">{topMethod?.[1] || 0} payments</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {topMethod?.[1] || 0} payments
+                        </p>
                       </div>
-                    )
+                    );
                   })()}
                 </div>
               </div>
@@ -330,24 +448,29 @@ export default function Dashboard() {
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <div>
                   <p className="font-medium">Grade Distribution</p>
-                  <p className="text-sm text-muted-foreground">Students by grade</p>
+                  <p className="text-sm text-muted-foreground">
+                    Students by grade
+                  </p>
                 </div>
                 <div className="text-right">
                   {(() => {
-                    const gradeCounts = students.reduce(
-                      (acc, s) => {
-                        acc[s.grade] = (acc[s.grade] || 0) + 1
-                        return acc
-                      },
-                      {} as Record<string, number>,
-                    )
-                    const topGrade = Object.entries(gradeCounts).sort(([, a], [, b]) => b - a)[0]
+                    const gradeCounts = students.reduce((acc, s) => {
+                      acc[s.grade] = (acc[s.grade] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>);
+                    const topGrade = Object.entries(gradeCounts).sort(
+                      ([, a], [, b]) => b - a
+                    )[0];
                     return (
                       <div>
-                        <Badge variant="outline">{topGrade?.[0] || "None"}</Badge>
-                        <p className="text-xs text-muted-foreground mt-1">{topGrade?.[1] || 0} students</p>
+                        <Badge variant="outline">
+                          {topGrade?.[0] || "None"}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {topGrade?.[1] || 0} students
+                        </p>
                       </div>
-                    )
+                    );
                   })()}
                 </div>
               </div>
@@ -355,37 +478,55 @@ export default function Dashboard() {
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <div>
                   <p className="font-medium">Collection Efficiency</p>
-                  <p className="text-sm text-muted-foreground">Avg days to payment</p>
+                  <p className="text-sm text-muted-foreground">
+                    Avg days to payment
+                  </p>
                 </div>
                 <div className="text-right">
                   {(() => {
                     const paidFees = students.flatMap((s) =>
-                      s.assignedFees.filter((f) => f.status === "paid" && f.dueDate),
-                    )
-                    if (paidFees.length === 0) return <Badge variant="outline">No data</Badge>
+                      s.assignedFees.filter(
+                        (f) => f.status === "paid" && f.dueDate
+                      )
+                    );
+                    if (paidFees.length === 0)
+                      return <Badge variant="outline">No data</Badge>;
 
                     const avgDays =
                       paidFees.reduce((sum, fee) => {
-                        const dueDate = new Date(fee.dueDate!)
-                        const payments = fee.paymentsApplied
-                        if (payments.length === 0) return sum
+                        const dueDate = new Date(fee.dueDate!);
+                        const payments = fee.paymentsApplied;
+                        if (payments.length === 0) return sum;
 
                         // Find the payment that completed this fee
-                        const payment = payments[payments.length - 1] // Last payment
+                        const payment = payments[payments.length - 1]; // Last payment
                         const paymentDate = new Date(
-                          payments.find((p) => p.paymentId === payment.paymentId)?.paymentId || fee.createdAt,
-                        )
-                        const daysDiff = Math.floor((paymentDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
-                        return sum + Math.max(0, daysDiff)
-                      }, 0) / paidFees.length
+                          payments.find(
+                            (p) => p.paymentId === payment.paymentId
+                          )?.paymentId || fee.createdAt
+                        );
+                        const daysDiff = Math.floor(
+                          (paymentDate.getTime() - dueDate.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        );
+                        return sum + Math.max(0, daysDiff);
+                      }, 0) / paidFees.length;
 
                     return (
                       <div>
-                        <Badge variant={avgDays <= 7 ? "default" : avgDays <= 30 ? "secondary" : "destructive"}>
+                        <Badge
+                          variant={
+                            avgDays <= 7
+                              ? "default"
+                              : avgDays <= 30
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
                           {Math.round(avgDays)} days
                         </Badge>
                       </div>
-                    )
+                    );
                   })()}
                 </div>
               </div>
@@ -394,5 +535,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
